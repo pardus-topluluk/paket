@@ -1,0 +1,21 @@
+[package]
+name = "libhello-world" # library names must started with lib. If not, it will be automatically added.
+type = "library"
+version = "0.1.0"
+maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
+
+homepage = "pardus.org.tr"
+keywords = ["package", "tags", "here"]
+categories = ["Game", "Education"]
+
+license = "MIT"
+architectures = ["any"]
+
+description = """
+Multiline description of what this package is about.
+"""
+
+[dependencies]
+application = ["python3.11", "python3-gi"]
+library = ["libgtk-3-0", "libglib2.0.0", "libpango-1.0-0"]
+# development = ["libgtk-3-0-dev"] # This field is only needed if the paket type is Source Code

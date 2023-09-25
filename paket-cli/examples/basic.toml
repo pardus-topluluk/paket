@@ -1,0 +1,10 @@
+[package]
+name = "hello-world"
+type = "application" # application, script, library, development_library, application_source_code, library_source_code, configuration
+version = "0.1.0"
+
+maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
+description = "Simple hello world program"
+
+license = "MIT"
+architectures = ["amd64"]

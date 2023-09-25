@@ -1,8 +1,7 @@
+# Not Enough Information about the package
+
+
 [package]
 name = "hello-world"
 version = "0.1.0"
 maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
-description = "Simple hello world program"
-
-license = "MIT"
-architectures = ["amd64"]

@@ -4,14 +4,71 @@ use serde::Deserialize;
 use toml;
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PackageType {
+    /// an Application in binary compiled form
+    ///
+    /// Example: `vlc`
+    Application,
+
+    /// an Application in script form(e.g.: Python or Javascript scripts)
+    ///
+    /// Example: `pardus-image-writer`
+    Script,
+
+    /// a Library to applications depend on it.
+    ///
+    /// Example: `libgtk-4`
+    Library,
+
+    /// The development files of a library which programs depend on.
+    ///
+    /// It can be used to develop applications which depends on a library.
+    ///
+    /// Example: `libgtk-4-dev` is the package to develop apps depends on `libgtk-4`
+    DevelopmentLibrary,
+
+    /// Source code of an application.
+    ///
+    /// It can be used to compile the application from source code embedded in the package.
+    ///
+    /// Example: `gzip-src`
+    ///
+    ApplicationSourceCode,
+
+    /// Source code of a library.
+    ///
+    /// It can be used to compile the library from source code embedded in the package.
+    ///
+    /// Example: `libXYZ-1-src`
+    LibrarySourceCode,
+
+    /// Configuration files
+    ///
+    /// It can be used to provide a theme, icon package, grub configs etc.
+    ///
+    /// Example: `fantastic-icons`, `my-wallpapers`, `my-custom-grub-theme`
+    Configuration,
+}
+
+/// `[package]` table in Paket.toml file
+#[derive(Debug, Deserialize)]
 pub struct Package {
     // ------------- Must Fields -------------
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// name = "paket-ismi"
     /// ```
     pub name: String,
+
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [package]
+    /// type = "application"
+    /// ```
+    #[serde(rename = "type")]
+    pub package_type: PackageType,
 
     /// Example:
     /// ```toml
@@ -20,14 +77,14 @@ pub struct Package {
     /// ```
     pub version: String,
 
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
     /// ```
     pub maintainers: Vec<String>,
 
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// description = "Here is a description of the application"
@@ -43,7 +100,7 @@ pub struct Package {
     /// ```
     pub description: String,
 
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// license = "MIT"
@@ -54,7 +111,7 @@ pub struct Package {
 
     /// Architecture names list compatible with Debian architecture names.
     ///
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// architectures = ["amd64", "i386", "riscv64", "arm64"]
@@ -65,14 +122,21 @@ pub struct Package {
     pub architectures: Vec<String>,
 
     // ------------- Optional Fields -------------
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
-    /// homepage = "x.org"
+    /// homepage = "pardus.org.tr"
     /// ```
-    pub homepage: Option<String>,
+    pub homepage_url: Option<String>,
 
-    /// Example `Paket.toml` file content for a game:
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [package]
+    /// source_repository = "github.com/pardus-topluluk/paket"
+    /// ```
+    pub source_repository_url: Option<String>,
+
+    /// Example usage in **Paket.toml** for a game:
     /// ```toml
     /// [package]
     /// keywords = ["platformer", "2D", "shooter", "action"]
@@ -81,7 +145,7 @@ pub struct Package {
 
     /// Categories compatible with freedesktop categories: https://specifications.freedesktop.org/menu-spec/menu-spec-1.0.html#category-registry
     ///
-    /// Example `Paket.toml` file content:
+    /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// categories = ["Game", "Education"]
@@ -89,9 +153,53 @@ pub struct Package {
     pub categories: Option<Vec<String>>,
 }
 
+/// `[dependencies]` table in Paket.toml file
+#[derive(Debug, Deserialize)]
+pub struct Dependencies {
+    /// Application dependencies of the package
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [dependencies]
+    /// application = ["python3.11", "python3-gi"]
+    /// ```
+    pub application: Option<Vec<String>>,
+
+    /// Library dependencies of the package
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [dependencies]
+    /// library = ["libgtk-3-0", "libglib2.0.0", "libpango-1.0-0"]
+    /// ```
+    pub library: Option<Vec<String>>,
+
+    /// Development dependencies of the package.
+    ///
+    /// <p style="background:rgba(255,181,77,0.16);padding:0.75em;">
+    /// <b>This field is only needed if the paket type is 'Source Code'</b>
+    /// </p>
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [dependencies]
+    /// development = ["libgtk-3-0-dev"]
+    /// ```   
+    pub development: Option<Vec<String>>,
+}
+
+/// Represents the whole Paket.toml file
 #[derive(Debug, Deserialize)]
 pub struct Config {
+    /// `[package]` table in Paket.toml file
+    ///
+    /// Stores the information about the package like `name`, `description`, `architectures`.
     pub package: Package,
+
+    /// `[dependencies]` table in Paket.toml file
+    ///
+    /// Stores the information of dependent applications, libraries or development libraries of the package.
+    pub dependencies: Option<Dependencies>,
 }
 
 pub fn read_config_from_toml(filepath: &Path) -> Result<Config, Box<dyn Error>> {
