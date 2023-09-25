@@ -12,7 +12,7 @@ HERE
 
 **Acceptance Criteria:**
 * [] HERE
-* [] Documentations on every struct, property and function is written with `///` three slashes.
+* [] Tests are passing.
 * [] Documentations on every struct, property and function is written with `///`. There should be a description and a small example usage.
 
 ---
