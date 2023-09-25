@@ -11,9 +11,9 @@ assignees: ''
 HERE
 
 **Acceptance Criteria:**
-* [] HERE
-* [] Tests are passing.
-* [] Documentations on every struct, property and function is written with `///`. There should be a description and a small example usage.
+* [ ] HERE
+* [ ] Tests are passing.
+* [ ] Documentations on every struct, property and function is written with `///`. There should be a description and a small example usage.
 
 ---
 **Implementation Details:**
