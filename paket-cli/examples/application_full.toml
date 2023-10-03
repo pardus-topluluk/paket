@@ -4,8 +4,8 @@ type = "application"
 version = "0.1.0"
 maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
 
-homepage = "pardus.org.tr"
-source_repository_url = "github.com/repo-here/if-exists"
+homepage = "https://pardus.org.tr"
+source_repository = "https://github.com/repo-here/if-exists"
 keywords = ["package", "tags", "here"]
 categories = ["Game", "Education"]
 

@@ -4,7 +4,7 @@ type = "library"
 version = "0.1.0"
 maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
 
-homepage = "pardus.org.tr"
+homepage = "https://pardus.org.tr"
 keywords = ["package", "tags", "here"]
 categories = ["Game", "Education"]
 

@@ -1,0 +1,13 @@
+[package]
+name = "font-hack"
+type = "configuration" # application, script, library, development_library, application_source_code, library_source_code, configuration
+version = "3.3.0"
+description = "A typeface designed for source code."
+
+homepage = "https://sourcefoundry.org/hack/"
+source_repository = "https://github.com/source-foundry/Hack"
+maintainers = ["Chris Simpkins <chris@sourcefoundry.org>"]
+keywords = ["font", "monospace"]
+
+license = "MIT"
+architectures = ["any"]
