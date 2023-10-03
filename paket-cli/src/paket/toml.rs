@@ -7,6 +7,11 @@ use std::{
 use serde::Deserialize;
 use toml;
 
+/// Example usage in **Paket.toml**:
+/// ```toml
+/// [package]
+/// type = "application"
+/// ```
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum PackageType {
@@ -56,6 +61,8 @@ pub enum PackageType {
 }
 
 /// `[package]` table in Paket.toml file
+///
+/// Stores the information about the package like `name`, `description`, `architectures`.
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Package {
     // ------------- Must Fields -------------
@@ -158,6 +165,8 @@ pub struct Package {
 }
 
 /// `[dependencies]` table in Paket.toml file
+///
+/// Stores the information of dependent applications, libraries or development libraries of the package.
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Dependencies {
     /// Application dependencies of the package
@@ -206,6 +215,15 @@ pub struct Config {
     pub dependencies: Option<Dependencies>,
 }
 
+/// Get `Config` struct from a `Paket.toml` file
+///
+/// Example:
+/// ```rust,no_run
+/// use std::path::Path;
+/// use paket_cli::paket::toml;
+///
+/// let paket_config: toml::Config = toml::read_config_from_toml(Path::new("./Paket.toml")).unwrap();
+/// ```
 pub fn read_config_from_toml(toml_path: &Path) -> io::Result<Config> {
     // Pre checks
     if !toml_path.exists() || !toml_path.is_file() {

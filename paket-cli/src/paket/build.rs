@@ -7,27 +7,56 @@ use flate2::Compression;
 
 use crate::paket;
 
-fn list_folders_in_paket_folder(paket_folder_path: &Path) -> io::Result<Vec<DirEntry>> {
-    // Read all the folders in the paket_folder_path
-    Ok(std::fs::read_dir(paket_folder_path)?
+/// List only directories in a folder.
+///
+/// Example:
+/// ```rust,ignore
+/// let folders: Vec<DirEntry> = list_only_directories("./")?;
+/// ```
+fn list_only_directories(folder_path: &Path) -> io::Result<Vec<DirEntry>> {
+    Ok(std::fs::read_dir(folder_path)?
         .filter_map(|r| r.ok()) // Get rid of Err variants for Result<DirEntry>
         .filter(|r| r.path().is_dir()) // Filter out non-folders
         .collect())
 }
 
-fn create_compressed_data_archive(paket_folders_list: &Vec<DirEntry>) -> io::Result<Vec<u8>> {
-    // Creating tar.gz archive of the data
+/// Create a .tar.gz compressed archive from DirEntry list.
+///
+/// Example:
+/// ```rust,ignore
+/// let folders: Vec<DirEntry> = list_only_directories("./")?;
+/// let compressed_data: Vec<u8> = create_tar_gz_archive_from_directories(&folders)?;
+/// ```
+fn create_tar_gz_archive_from_directories(folders_list: &Vec<DirEntry>) -> io::Result<Vec<u8>> {
     let enc = GzEncoder::new(Vec::new(), Compression::default());
     let mut tar_builder = tar::Builder::new(enc);
 
-    // Read all the folders in the paket_folder_path
-    for p in paket_folders_list {
+    for p in folders_list {
         tar_builder.append_dir_all(p.file_name(), p.path())?;
     }
 
     tar_builder.into_inner()?.finish()
 }
 
+/// Create a .paket file.
+///
+/// Example:
+/// ```rust,ignore
+/// let folders: Vec<DirEntry> = list_only_directories("./")?;
+/// let compressed_data: Vec<u8> = create_tar_gz_archive_from_directories(&folders)?;
+///
+/// let toml_folder_path = Path::new("./");
+/// let toml_file_path = toml_folder_path.join("Paket.toml");
+///
+/// let (paket_pathbuf, paket_file) = create_paket_archive(
+///     "paket-name_1.0.0.paket",
+///     toml_folder_path,
+///     &toml_file_path,
+///     compressed_data,
+/// )?;
+///
+/// paket_file.sync_all()?;
+/// ```
 fn create_paket_archive(
     archive_name: &str,
     paket_folder_path: &Path,
@@ -78,6 +107,29 @@ fn create_paket_archive(
     Ok((filepath, tar_builder.into_inner()?))
 }
 
+/// Create a .paket file from a Paket.toml config file path.
+///
+/// Example:
+/// ```rust,no_run
+/// use std::path::Path;
+/// use paket_cli::paket;
+/// // Files:
+/// // ./
+/// // ├── Paket.toml
+/// // └── usr/
+/// //     └── bin/
+/// //         └── myapp
+/// paket::build::create_paket_from_toml(Path::new("./")).unwrap();
+///
+/// // Then there should be a paket file created if everything is ok:
+/// // Files:
+/// // ./
+/// // ├── myapp_1.0.0.paket
+/// // ├── Paket.toml
+/// // └── usr/
+/// //     └── bin/
+/// //         └── myapp
+/// ```
 pub fn create_paket_from_toml(toml_folder_path: &Path) -> io::Result<(PathBuf, File)> {
     // Read Config struct from toml file
     let toml_file_path = toml_folder_path.join("Paket.toml");
@@ -88,10 +140,10 @@ pub fn create_paket_from_toml(toml_folder_path: &Path) -> io::Result<(PathBuf, F
         paket_config.package.version.as_str()
     );
 
-    let paket_folder_dir_list = list_folders_in_paket_folder(toml_folder_path)?;
+    let paket_folder_dir_list = list_only_directories(toml_folder_path)?;
 
     // Create data.tar.gz
-    let compressed_data = create_compressed_data_archive(&paket_folder_dir_list)?;
+    let compressed_data = create_tar_gz_archive_from_directories(&paket_folder_dir_list)?;
 
     // Create app_1.0.0.paket
     let (paket_pathbuf, paket_file) = create_paket_archive(
