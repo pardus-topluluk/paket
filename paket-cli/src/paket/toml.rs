@@ -1,9 +1,13 @@
-use std::{error::Error, fs, path::Path};
+use std::{
+    fs::File,
+    io::{self, Read},
+    path::Path,
+};
 
 use serde::Deserialize;
 use toml;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum PackageType {
     /// an Application in binary compiled form
@@ -52,7 +56,7 @@ pub enum PackageType {
 }
 
 /// `[package]` table in Paket.toml file
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Package {
     // ------------- Must Fields -------------
     /// Example usage in **Paket.toml**:
@@ -127,14 +131,14 @@ pub struct Package {
     /// [package]
     /// homepage = "pardus.org.tr"
     /// ```
-    pub homepage_url: Option<String>,
+    pub homepage: Option<String>,
 
     /// Example usage in **Paket.toml**:
     /// ```toml
     /// [package]
     /// source_repository = "github.com/pardus-topluluk/paket"
     /// ```
-    pub source_repository_url: Option<String>,
+    pub source_repository: Option<String>,
 
     /// Example usage in **Paket.toml** for a game:
     /// ```toml
@@ -154,7 +158,7 @@ pub struct Package {
 }
 
 /// `[dependencies]` table in Paket.toml file
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Dependencies {
     /// Application dependencies of the package
     ///
@@ -189,7 +193,7 @@ pub struct Dependencies {
 }
 
 /// Represents the whole Paket.toml file
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Config {
     /// `[package]` table in Paket.toml file
     ///
@@ -202,8 +206,29 @@ pub struct Config {
     pub dependencies: Option<Dependencies>,
 }
 
-pub fn read_config_from_toml(filepath: &Path) -> Result<Config, Box<dyn Error>> {
-    let config: Config = toml::from_str(fs::read_to_string(filepath)?.as_str())?;
+pub fn read_config_from_toml(toml_path: &Path) -> io::Result<Config> {
+    // Pre checks
+    if !toml_path.exists() || !toml_path.is_file() {
+        return Err(io::Error::from(io::ErrorKind::NotFound));
+    }
+
+    match toml_path.extension() {
+        Some(s) => {
+            if s != "toml" {
+                return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            }
+        }
+        None => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
+    }
+
+    // Read toml file
+    let mut file = File::open(toml_path)?;
+    let mut content = String::new();
+    file.read_to_string(&mut content)?;
+
+    // Convert it to toml
+    let config: Config = toml::from_str(content.as_str())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.message()))?;
 
     Ok(config)
 }
