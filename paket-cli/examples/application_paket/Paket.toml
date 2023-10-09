@@ -1,5 +1,5 @@
 [package]
-name = "hello-world"
+name = "my-helloworld-app"
 type = "application"
 version = "0.1.0"
 maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
@@ -16,11 +16,10 @@ description = """
 Multiline description of what this package is about.
 """
 
-[dependencies]
-application = ["python3.11", "python3-gi"]
-library = ["libgtk-3-0", "libglib2.0.0", "libpango-1.0-0"]
-# development = ["libgtk-3-0-dev"] # This field is only needed if the paket type is Source Code
-
 [application]
-executable = "myapp"
-icon = "myapp.svg"
+executable = "helloworld"
+icon = "helloworld.svg"
+
+[dependencies]
+application = []
+library = []

@@ -9,7 +9,6 @@ authors = ["Emin Fedar <eminfedar@gmail.com>"]
 [dependencies]
 # Terminal
 clap = { version= "4", features = ["cargo"]}
-color-print = "0.3"
 
 # Serialization/Deserialization
 serde = { version = "1", features = ["derive"]}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <linearGradient id="gradient-1" bx:pinned="true">
+      <stop offset="0" style="stop-color: rgb(0, 213, 199);"/>
+      <stop offset="1" style="stop-color: rgb(0, 62, 58);"/>
+    </linearGradient>
+    <linearGradient id="gradient-1-0" gradientUnits="userSpaceOnUse" x1="64" y1="44.943" x2="64" y2="71.857" xlink:href="#gradient-1"/>
+    <filter id="drop-shadow-filter-0" color-interpolation-filters="sRGB" x="-50%" y="-50%" width="200%" height="200%" bx:preset="drop-shadow 1 0 1 0 1 rgba(0,0,0,0.29)">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0"/>
+      <feOffset dx="0" dy="1"/>
+      <feComponentTransfer result="offsetblur">
+        <feFuncA id="spread-ctrl" type="linear" slope="2"/>
+      </feComponentTransfer>
+      <feFlood flood-color="rgba(0,0,0,0.29)"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="4.777" y="10.623" width="118.447" height="113.261" rx="7" ry="7" style="fill: rgb(0, 231, 219);"/>
+  <rect x="4.777" width="118.447" height="113.261" rx="7" ry="7" style="fill: rgb(0, 255, 242);" y="4.115"/>
+  <text style="fill: rgb(255, 255, 255); font-family: Ubuntu; font-size: 28px; font-weight: 700; stroke: url('#gradient-1-0'); text-anchor: middle; white-space: pre; filter: url('#drop-shadow-filter-0');" x="64" y="67.298">Hello!</text>
+</svg>

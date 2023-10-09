@@ -23,6 +23,11 @@ fn deserialize_basic_toml() {
             categories: None,
         },
         dependencies: None,
+        application: Some(ApplicationInformation {
+            executable: String::from("hello-world"),
+            icon: String::from("hello-world.svg"),
+        }),
+        script: None,
     };
 
     assert_eq!(read_config, expected_config);
@@ -62,6 +67,11 @@ fn deserialize_application_full_toml() {
             ]),
             development: None,
         }),
+        application: Some(ApplicationInformation {
+            executable: String::from("myapp"),
+            icon: String::from("myapp.svg"),
+        }),
+        script: None,
     };
 
     assert_eq!(read_config, expected_config);

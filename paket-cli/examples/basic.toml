@@ -8,3 +8,7 @@ description = "Simple hello world program"
 
 license = "MIT"
 architectures = ["amd64"]
+
+[application]
+executable = "hello-world"
+icon = "hello-world.svg"

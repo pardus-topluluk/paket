@@ -1,8 +1,6 @@
-use std::{
-    fs::File,
-    io::{self, Read},
-    path::Path,
-};
+use std::{fs::File, io::Read, path::Path};
+
+use crate::paket::{PaketError, Result};
 
 use serde::Deserialize;
 use toml;
@@ -201,6 +199,66 @@ pub struct Dependencies {
     pub development: Option<Vec<String>>,
 }
 
+/// `[application]` table in Paket.toml file
+///
+/// Stores the PackageType::Application specific properties like `executable` or `icon`.
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ApplicationInformation {
+    /// Binary executable file of the application
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [application]
+    /// executable = "helloworld"
+    /// ```
+    pub executable: String,
+
+    /// .svg Icon of the application
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [application]
+    /// icon = "myapp.svg"
+    /// ```
+    pub icon: String,
+}
+
+/// `[script]` table in Paket.toml file
+///
+/// Stores the PackageType::Script specific properties like `sources`,`executable` or `icon`.
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ScriptInformation {
+    /// Main executable file in the directory in `sources` property.
+    ///
+    /// Like: `main.py` or `main.js`
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// sources = "src"
+    /// executable = "main.py" # this is stored in `src/main.py`
+    /// ```
+    pub executable: String,
+
+    /// .svg Icon of the application
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// icon = "myapp.svg"
+    /// ```
+    pub icon: String,
+
+    /// .svg Icon of the application
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// sources = "src"
+    /// ```
+    pub sources: String,
+}
+
 /// Represents the whole Paket.toml file
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Config {
@@ -213,6 +271,16 @@ pub struct Config {
     ///
     /// Stores the information of dependent applications, libraries or development libraries of the package.
     pub dependencies: Option<Dependencies>,
+
+    /// `[application]` table in Paket.toml file
+    ///
+    /// Stores the `PackageType::Application` specific properties like `executable` or `icon`.
+    pub application: Option<ApplicationInformation>,
+
+    /// `[script]` table in Paket.toml file
+    ///
+    /// Stores the `PackageType::Script` specific properties like `sources`,`executable` or `icon`.
+    pub script: Option<ScriptInformation>,
 }
 
 /// Get `Config` struct from a `Paket.toml` file
@@ -224,29 +292,56 @@ pub struct Config {
 ///
 /// let paket_config: toml::Config = toml::read_config_from_toml(Path::new("./Paket.toml")).unwrap();
 /// ```
-pub fn read_config_from_toml(toml_path: &Path) -> io::Result<Config> {
+pub fn read_config_from_toml(toml_path: &Path) -> Result<Config> {
+    let toml_path_string = toml_path.to_string_lossy().to_string();
     // Pre checks
-    if !toml_path.exists() || !toml_path.is_file() {
-        return Err(io::Error::from(io::ErrorKind::NotFound));
+    if !toml_path.exists() {
+        return Err(PaketError::FileNotFound(toml_path_string));
+    }
+
+    if !toml_path.is_file() {
+        return Err(PaketError::NotAFile(toml_path_string));
     }
 
     match toml_path.extension() {
         Some(s) => {
             if s != "toml" {
-                return Err(io::Error::from(io::ErrorKind::InvalidInput));
+                return Err(PaketError::NotATomlFile(toml_path_string));
             }
         }
-        None => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
+        None => return Err(PaketError::NotATomlFile(toml_path_string)),
     }
 
     // Read toml file
-    let mut file = File::open(toml_path)?;
+    let mut file = File::open(toml_path).unwrap();
     let mut content = String::new();
-    file.read_to_string(&mut content)?;
+    file.read_to_string(&mut content).unwrap();
 
     // Convert it to toml
-    let config: Config = toml::from_str(content.as_str())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.message()))?;
+    let config: Config = match toml::from_str(content.as_str()) {
+        Ok(c) => c,
+        Err(e) => return Err(PaketError::TomlParseError(e.message().to_string())),
+    };
+
+    // Check package types
+    match config.package.package_type {
+        PackageType::Application => {
+            if config.application.is_none() {
+                return Err(PaketError::TomlFieldNotFound(
+                    r#"type="application" pakets must have [application] field."#.to_string(),
+                ));
+            }
+        }
+        PackageType::Script => {
+            if config.script.is_none() {
+                return Err(PaketError::TomlFieldNotFound(
+                    r#"type="script" pakets must have [script] field."#.to_string(),
+                ));
+            }
+        }
+        PackageType::Configuration => (),
+        _ => (),
+    }
 
     Ok(config)
 }

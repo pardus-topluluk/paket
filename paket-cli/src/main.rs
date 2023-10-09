@@ -1,12 +1,13 @@
-use std::{
-    io::{self, ErrorKind},
-    path::Path,
+use std::path::Path;
+
+use crate::paket::Result;
+
+use paket_cli::{
+    paket::{err, success},
+    *,
 };
 
-use color_print::{cformat, cprintln, cstr};
-use paket_cli::*;
-
-fn main() -> io::Result<()> {
+fn main() -> Result<()> {
     let matches = cli::cli().get_matches();
 
     match matches.subcommand() {
@@ -16,33 +17,13 @@ fn main() -> io::Result<()> {
                 .expect("Expecting a valid --toml-path.");
 
             match paket::build::create_paket_from_toml(Path::new(toml_path)) {
-                Ok((pathbuf, _file)) => {
-                    cprintln!(
-                        "✅ <green,bold>Paket Successfully Created at:</> {}",
-                        pathbuf.to_string_lossy()
-                    );
+                Ok((filename, _file)) => {
+                    success(format!("Paket Successfully Created at: {}", filename));
                 }
-                Err(e) => match e.kind() {
-                    ErrorKind::NotFound => {
-                        eprintln!(
-                            "{}",
-                            cformat!(
-                                "❌ <bold><red>Error:</> Paket.toml wasn't found in path: '{}'</>",
-                                toml_path
-                            )
-                        );
-                    }
-                    ErrorKind::InvalidInput => {
-                        eprintln!(cstr!(
-                            "❌ <bold><red>Error:</> Please provide a valid 'Paket.toml' file path.</>",
-                        ));
-                    }
-                    _ => eprintln!(
-                        "{}",
-                        cformat!("❌ <red,bold>Error while creating a package:</> {e:?}")
-                    ),
-                },
-            }
+                Err(e) => {
+                    err(&e);
+                }
+            };
         }
         Some(("install", sub_matches)) => {
             let packages: Vec<String> =
