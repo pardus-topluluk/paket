@@ -5,17 +5,23 @@ mod tests {
 
     use libpaket::build::*;
 
-    #[test]
-    fn build_configuration_paket() {
-        let (_pathbuf, _file) =
-            create_paket_from_toml(Path::new("./example_pakets/configuration_paket")).unwrap();
+    macro_rules! folder_test {
+        ($name:tt) => {
+            #[test]
+            fn $name() {
+                let _ = create_paket_from_toml(Path::new(concat!(
+                    "./example_pakets/",
+                    stringify!($name)
+                )))
+                .unwrap();
+            }
+        };
     }
 
-    #[test]
-    fn build_configuration_with_user_path_paket() {
-        let (_pathbuf, _file) = create_paket_from_toml(Path::new(
-            "./example_pakets/configuration_with_user_path_paket",
-        ))
-        .unwrap();
-    }
+    folder_test!(configuration_paket);
+    folder_test!(configuration_paket_with_user_home);
+    folder_test!(application_paket);
+    folder_test!(application_paket_with_assets);
+    folder_test!(script_paket);
+    folder_test!(script_paket_with_assets);
 }

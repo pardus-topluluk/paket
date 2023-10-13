@@ -1,0 +1,23 @@
+[package]
+name = "helloworld-script"
+type = "script"
+version = "0.1.0"
+maintainers = ["Emin Fedar <eminfedar@gmail.com>"]
+
+homepage = "https://pardus.org.tr"
+source_repository = "https://github.com/repo-here/if-exists"
+keywords = ["package", "tags", "here"]
+categories = ["Game", "Education"]
+
+license = "MIT"
+architectures = ["any"]
+
+description = """
+Multiline description of what this package is about.
+"""
+
+[script]
+executable = "main.py" # src/main.py
+icon = "helloworld.svg"
+
+sources_folder = "src" # contains source scripts like: src/main.py, src/helloworld_module.py ...
