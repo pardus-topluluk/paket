@@ -5,8 +5,7 @@ use std::path::Path;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 
-use crate::paket;
-use crate::paket::Result;
+use crate::*;
 
 /// List only directories in a folder.
 fn list_only_directories(folder_path: &Path) -> io::Result<Vec<DirEntry>> {
@@ -41,7 +40,7 @@ fn create_paket_archive(
     tar_builder.append_path_with_name(toml_file_path, "Paket.toml")?;
 
     // Add SHA256SUM of data.tar.gz
-    let mut sha256sum = paket::sha256::calculate_sha256(&compressed_data);
+    let mut sha256sum = sha256::calculate_sha256(&compressed_data);
     sha256sum.push('\n');
 
     let mut header = tar::Header::new_gnu();
@@ -82,14 +81,13 @@ fn create_paket_archive(
 /// Example:
 /// ```rust,no_run
 /// use std::path::Path;
-/// use paket_cli::paket;
 /// // Files:
 /// // ./
 /// // ├── Paket.toml
 /// // └── usr/
 /// //     └── bin/
 /// //         └── myapp
-/// paket::build::create_paket_from_toml(Path::new("./")).unwrap();
+/// libpaket::build::create_paket_from_toml(Path::new("./")).unwrap();
 ///
 /// // Then there should be a paket file created if everything is ok:
 /// // Files:
@@ -103,28 +101,28 @@ fn create_paket_archive(
 pub fn create_paket_from_toml(toml_folder_path: &Path) -> Result<(String, File)> {
     // Read Config struct from toml file
     let toml_file_path = toml_folder_path.join("Paket.toml");
-    let paket_config = paket::toml::read_config_from_toml(&toml_file_path)?;
+    let paket_config = toml::read_config_from_toml(&toml_file_path)?;
     let archive_name = format!(
         "{}_{}.paket",
         paket_config.package.name.as_str(),
         paket_config.package.version.as_str()
     );
 
-    let paket_folder_dir_list = paket::to_paket_error(list_only_directories(toml_folder_path))?;
+    let paket_folder_dir_list = to_paket_error(list_only_directories(toml_folder_path))?;
 
     // Create data.tar.gz
-    let compressed_data = paket::to_paket_error(create_tar_gz_archive_from_directories(
+    let compressed_data = to_paket_error(create_tar_gz_archive_from_directories(
         &paket_folder_dir_list,
     ))?;
 
     // Create app_1.0.0.paket
-    let paket_file = paket::to_paket_error(create_paket_archive(
+    let paket_file = to_paket_error(create_paket_archive(
         &archive_name,
         &toml_file_path,
         compressed_data,
     ))?;
 
-    paket::to_paket_error(paket_file.sync_all())?;
+    to_paket_error(paket_file.sync_all())?;
 
     Ok((archive_name, paket_file))
 }

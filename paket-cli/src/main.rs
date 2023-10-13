@@ -1,11 +1,7 @@
 use std::path::Path;
 
-use crate::paket::Result;
-
-use paket_cli::{
-    paket::{err, success},
-    *,
-};
+use libpaket::Result;
+use paket_cli::cli;
 
 fn main() -> Result<()> {
     let matches = cli::cli().get_matches();
@@ -16,12 +12,12 @@ fn main() -> Result<()> {
                 .get_one::<String>("toml_path")
                 .expect("Expecting a valid --toml-path.");
 
-            match paket::build::create_paket_from_toml(Path::new(toml_path)) {
+            match libpaket::build::create_paket_from_toml(Path::new(toml_path)) {
                 Ok((filename, _file)) => {
-                    success(format!("Paket Successfully Created at: {}", filename));
+                    cli::success(format!("Paket Successfully Created at: {}", filename));
                 }
                 Err(e) => {
-                    err(&e);
+                    cli::err(&e);
                 }
             };
         }

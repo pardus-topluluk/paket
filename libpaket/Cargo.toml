@@ -1,24 +1,26 @@
 [package]
-name = "paket-cli"
+name = "libpaket"
 version = "0.1.0"
 edition = "2021"
-authors = ["Emin Fedar <eminfedar@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# Terminal
-clap = { version= "4", features = ["cargo"]}
-
 # Serialization/Deserialization
 serde = { version = "1", features = ["derive"]}
 toml = "0.8"
 
+# Compression
+flate2 = "1"
+tar = "0.4"
+
 # Cryptography
 sha2 = "0.10.8"
-
-libpaket = { path = "../libpaket" }
 
 [dev-dependencies]
 # Testing
 pretty_assertions = "1"
+
+[lib]
+name = "libpaket"
+path = "src/lib.rs"

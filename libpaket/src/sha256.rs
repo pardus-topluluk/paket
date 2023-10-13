@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 /// Example:
 /// ```rust
 /// let text = String::from("Selam");
-/// let sha256sum = crate::paket_cli::paket::sha256::calculate_sha256(text.as_bytes());
+/// let sha256sum = libpaket::sha256::calculate_sha256(text.as_bytes());
 ///
 /// assert_eq!(sha256sum, "26fb1ab0ca8483866f03ca66e2018b0685f3e1e84caca77b3f5643ae799d9eb4");
 /// ```

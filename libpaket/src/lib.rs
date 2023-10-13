@@ -5,7 +5,7 @@ pub mod toml;
 use std::fmt;
 
 #[allow(dead_code)]
-mod color {
+pub mod color {
     pub const RESET: &str = "\x1b[0m"; // Sıfırla (rengi sıfırlar ve özellikleri kapatır)
     pub const BOLD: &str = "\x1b[1m"; // Kalın
     pub const DIM: &str = "\x1b[2m"; // İnce
@@ -53,12 +53,4 @@ impl fmt::Display for PaketError {
 
 pub fn to_paket_error<T>(r: std::io::Result<T>) -> Result<T> {
     r.map_err(|e| PaketError::IOError(e.to_string()))
-}
-
-pub fn err(e: &PaketError) {
-    eprintln!("❌ {RED}{BOLD}[Error]:{RESET} {e}");
-}
-
-pub fn success(s: impl AsRef<str>) {
-    println!("✅ {GREEN}{BOLD}[Success]:{RESET} {}", s.as_ref());
 }

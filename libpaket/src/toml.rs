@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, path::Path};
 
-use crate::paket::{PaketError, Result};
+use crate::{PaketError, Result};
 
 use serde::Deserialize;
 use toml;
@@ -221,6 +221,17 @@ pub struct ApplicationInformation {
     /// icon = "myapp.svg"
     /// ```
     pub icon: String,
+
+    /// Contains read-only assets required to run for the script. (images, videos, UI files, 3D models, json stored datas etc.)
+    ///
+    /// This folder will be copied to: /usr/share/<appname>/assets/
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// assets_folder = "assets"
+    /// ```
+    pub assets_folder: Option<String>,
 }
 
 /// `[script]` table in Paket.toml file
@@ -235,7 +246,7 @@ pub struct ScriptInformation {
     /// Example usage in **Paket.toml**:
     /// ```toml
     /// [script]
-    /// sources = "src"
+    /// source_folder = "src"
     /// executable = "main.py" # this is stored in `src/main.py`
     /// ```
     pub executable: String,
@@ -249,14 +260,27 @@ pub struct ScriptInformation {
     /// ```
     pub icon: String,
 
-    /// .svg Icon of the application
+    /// Contains main script and other scripts.
+    ///
+    /// This folder will be copied to: /usr/share/<appname>/src/
     ///
     /// Example usage in **Paket.toml**:
     /// ```toml
     /// [script]
-    /// sources = "src"
+    /// source_folder = "src"
     /// ```
-    pub sources: String,
+    pub sources_folder: Option<String>,
+
+    /// Contains read-only assets required to run for the script. (images, videos, UI files, 3D models, json stored datas etc.)
+    ///
+    /// This folder will be copied to: /usr/share/<appname>/assets/
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// assets_folder = "assets"
+    /// ```
+    pub assets_folder: Option<String>,
 }
 
 /// Represents the whole Paket.toml file
@@ -288,7 +312,7 @@ pub struct Config {
 /// Example:
 /// ```rust,no_run
 /// use std::path::Path;
-/// use paket_cli::paket::toml;
+/// use libpaket::toml;
 ///
 /// let paket_config: toml::Config = toml::read_config_from_toml(Path::new("./Paket.toml")).unwrap();
 /// ```
