@@ -1,8 +1,6 @@
 # paket
 Blazing fast, memory safe &amp; modern Linux package manager written in Rust.
 
----
-
 ## How does it work?
 Basic principle of how paket works is:
 ![Alt text](/paket-architecture.webp "Paket Architecture")
