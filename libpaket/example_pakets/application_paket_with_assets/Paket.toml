@@ -19,7 +19,13 @@ Multiline description of what this package is about.
 [application]
 executable = "helloworld"
 icon = "helloworld.svg"
+assets_folder = "assets" # contains assets like: image,video,sound,binary,text data etc. in paket folder. like: assets/img/logo.png, assets/sound/intro.ogg, assets/3d_objects/My3DModel.obj
 
-[dependencies]
-application = []
-library = []
+# Extraction of this paket is:
+# helloworld     -> /usr/share/my-helloworld-app/helloworld
+# helloworld.svg -> /usr/share/icons/my-helloworld-app/helloworld.svg
+# assets/        -> /usr/share/my-helloworld-app/assets/
+
+# Automatically generated files:
+# /usr/bin/helloworld linked to "/usr/share/my-helloworld-app/helloworld" (symbolic link)
+# /usr/share/applications/my-helloworld-app.desktop
