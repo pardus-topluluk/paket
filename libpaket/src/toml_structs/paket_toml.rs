@@ -333,6 +333,16 @@ pub struct Config {
     pub script: Option<ScriptInformation>,
 }
 
+impl Config {
+    pub fn get_paket_archive_name(&self) -> String {
+        format!(
+            "{}_{}.paket",
+            self.package.name.as_str(),
+            self.package.version.as_str()
+        )
+    }
+}
+
 fn is_toml_file_valid(toml_path: &Path) -> Result<()> {
     let toml_path_string = toml_path.to_string_lossy().to_string();
     // Pre checks

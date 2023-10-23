@@ -104,11 +104,7 @@ pub fn create_paket_from_toml(toml_folder_path: &Path) -> Result<(String, File)>
     // Read Config struct from toml file
     let toml_file_path = toml_folder_path.join("Paket.toml");
     let paket_config = paket_toml::read_config_from_toml(&toml_file_path)?;
-    let archive_name = format!(
-        "{}_{}.paket",
-        paket_config.package.name.as_str(),
-        paket_config.package.version.as_str()
-    );
+    let archive_name = paket_config.get_paket_archive_name();
 
     let paket_folder_dir_list = list_only_directories(toml_folder_path)?;
 

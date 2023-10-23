@@ -19,6 +19,7 @@ sha2 = "0.10"
 
 # Utils
 once_cell = "1"
+semver = "1"
 
 [dev-dependencies]
 # Testing
