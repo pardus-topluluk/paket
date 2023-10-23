@@ -1,6 +1,7 @@
 pub mod build;
+pub mod install;
 pub mod sha256;
-pub mod toml;
+pub mod toml_structs;
 
 use std::fmt;
 
@@ -51,6 +52,8 @@ impl fmt::Display for PaketError {
     }
 }
 
-pub fn to_paket_error<T>(r: std::io::Result<T>) -> Result<T> {
-    r.map_err(|e| PaketError::IOError(e.to_string()))
+impl From<std::io::Error> for PaketError {
+    fn from(value: std::io::Error) -> Self {
+        PaketError::IOError(value.to_string())
+    }
 }

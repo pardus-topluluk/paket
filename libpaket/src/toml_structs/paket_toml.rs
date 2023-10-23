@@ -222,7 +222,7 @@ pub struct ApplicationInformation {
     /// ```
     pub icon: String,
 
-    /// Contains read-only assets required to run for the script. (images, videos, UI files, 3D models, json stored datas etc.)
+    /// Contains read-only assets required to run for the application. (images, videos, UI files, 3D models, json stored datas etc.)
     ///
     /// This folder will be copied to: /usr/share/<appname>/assets/
     ///
@@ -232,6 +232,19 @@ pub struct ApplicationInformation {
     /// assets_folder = "assets"
     /// ```
     pub assets_folder: Option<String>,
+
+    /// If given, this will be the used .desktop file.
+    ///
+    /// If not given or empty, .desktop file automatically will be generated from Paket.toml
+    ///
+    /// This file will be copied to: /usr/share/applications/<desktop_file>
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// desktop_file = "helloworld.desktop"
+    /// ```
+    pub desktop_file: Option<String>,
 }
 
 /// `[script]` table in Paket.toml file
@@ -281,6 +294,19 @@ pub struct ScriptInformation {
     /// assets_folder = "assets"
     /// ```
     pub assets_folder: Option<String>,
+
+    /// If given, this will be the used .desktop file.
+    ///
+    /// If not given or empty, .desktop file automatically will be generated from Paket.toml
+    ///
+    /// This file will be copied to: /usr/share/applications/<desktop_file>
+    ///
+    /// Example usage in **Paket.toml**:
+    /// ```toml
+    /// [script]
+    /// desktop_file = "myapp.desktop"
+    /// ```
+    pub desktop_file: Option<String>,
 }
 
 /// Represents the whole Paket.toml file
@@ -307,16 +333,7 @@ pub struct Config {
     pub script: Option<ScriptInformation>,
 }
 
-/// Get `Config` struct from a `Paket.toml` file
-///
-/// Example:
-/// ```rust,no_run
-/// use std::path::Path;
-/// use libpaket::toml;
-///
-/// let paket_config: toml::Config = toml::read_config_from_toml(Path::new("./Paket.toml")).unwrap();
-/// ```
-pub fn read_config_from_toml(toml_path: &Path) -> Result<Config> {
+fn is_toml_file_valid(toml_path: &Path) -> Result<()> {
     let toml_path_string = toml_path.to_string_lossy().to_string();
     // Pre checks
     if !toml_path.exists() {
@@ -336,16 +353,43 @@ pub fn read_config_from_toml(toml_path: &Path) -> Result<Config> {
         None => return Err(PaketError::NotATomlFile(toml_path_string)),
     }
 
+    Ok(())
+}
+
+/// Read and parse a toml file to any toml struct.
+///
+/// Example:
+/// ```rust,no_run
+/// use std::path::Path;
+/// use toml;
+/// use libpaket::toml_structs::paket_toml;
+///
+/// let toml_table: toml::Table = paket_toml::read_toml_file(Path::new("./Paket.toml")).unwrap();
+/// ```
+pub fn read_toml_file<T: serde::de::DeserializeOwned>(toml_path: &Path) -> Result<T> {
+    // Validness guard
+    is_toml_file_valid(toml_path)?;
+
     // Read toml file
     let mut file = File::open(toml_path).unwrap();
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
 
-    // Convert it to toml
-    let config: Config = match toml::from_str(content.as_str()) {
-        Ok(c) => c,
-        Err(e) => return Err(PaketError::TomlParseError(e.message().to_string())),
-    };
+    toml::from_str(content.as_str())
+        .map_err(|e| PaketError::TomlParseError(e.message().to_string()))
+}
+
+/// Get `Config` struct from a `Paket.toml` file
+///
+/// Example:
+/// ```rust,no_run
+/// use std::path::Path;
+/// use libpaket::toml_structs::paket_toml;
+///
+/// let paket_config: paket_toml::Config = paket_toml::read_config_from_toml(Path::new("./Paket.toml")).unwrap();
+/// ```
+pub fn read_config_from_toml(toml_path: &Path) -> Result<Config> {
+    let config: Config = read_toml_file(toml_path)?;
 
     // Check package types
     match config.package.package_type {

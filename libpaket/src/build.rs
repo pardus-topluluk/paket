@@ -5,7 +5,9 @@ use std::path::Path;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 
-use crate::*;
+use crate::sha256;
+use crate::toml_structs::paket_toml;
+use crate::Result;
 
 /// List only directories in a folder.
 fn list_only_directories(folder_path: &Path) -> io::Result<Vec<DirEntry>> {
@@ -101,28 +103,22 @@ fn create_paket_archive(
 pub fn create_paket_from_toml(toml_folder_path: &Path) -> Result<(String, File)> {
     // Read Config struct from toml file
     let toml_file_path = toml_folder_path.join("Paket.toml");
-    let paket_config = toml::read_config_from_toml(&toml_file_path)?;
+    let paket_config = paket_toml::read_config_from_toml(&toml_file_path)?;
     let archive_name = format!(
         "{}_{}.paket",
         paket_config.package.name.as_str(),
         paket_config.package.version.as_str()
     );
 
-    let paket_folder_dir_list = to_paket_error(list_only_directories(toml_folder_path))?;
+    let paket_folder_dir_list = list_only_directories(toml_folder_path)?;
 
     // Create data.tar.gz
-    let compressed_data = to_paket_error(create_tar_gz_archive_from_directories(
-        &paket_folder_dir_list,
-    ))?;
+    let compressed_data = create_tar_gz_archive_from_directories(&paket_folder_dir_list)?;
 
     // Create app_1.0.0.paket
-    let paket_file = to_paket_error(create_paket_archive(
-        &archive_name,
-        &toml_file_path,
-        compressed_data,
-    ))?;
+    let paket_file = create_paket_archive(&archive_name, &toml_file_path, compressed_data)?;
 
-    to_paket_error(paket_file.sync_all())?;
+    paket_file.sync_all()?;
 
     Ok((archive_name, paket_file))
 }

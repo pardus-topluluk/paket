@@ -3,7 +3,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::path::Path;
 
-    use libpaket::toml::*;
+    use libpaket::toml_structs::paket_toml::*;
 
     #[test]
     fn deserialize_basic_toml() {
@@ -30,6 +30,7 @@ mod tests {
                 executable: String::from("hello-world"),
                 icon: String::from("hello-world.svg"),
                 assets_folder: None,
+                desktop_file: None,
             }),
             script: None,
         };
@@ -75,6 +76,7 @@ mod tests {
                 executable: String::from("myapp"),
                 icon: String::from("myapp.svg"),
                 assets_folder: None,
+                desktop_file: None,
             }),
             script: None,
         };
