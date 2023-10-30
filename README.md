@@ -6,6 +6,7 @@ Blazing fast, memory safe &amp; modern Linux package manager written in Rust.
 ### Version: 0.1
 - [x] Paket.toml file parsing. (#1, #2)
 - [x] CLI handling (`paket <...>`) (#3)
+- [ ] `libpaket` to install and manage pakets for usage in `paket-cli` and `paket-server` and other developers.
 - [ ] Creating .paket files with `paket build` (#6, #7, #8)
 - [ ] Install a .paket file with `paket install <filename>` (#9)
 - [ ] Upgrade, Downgrade an existing paket
