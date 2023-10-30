@@ -1,8 +1,25 @@
 # paket
 Blazing fast, memory safe &amp; modern Linux package manager written in Rust.
 
+## Roadmap
+
+### Version: 0.1
+- [x] Paket.toml file parsing. (#1, #2)
+- [x] CLI handling (`paket <...>`) (#3)
+- [ ] Creating .paket files with `paket build` (#6, #7, #8)
+- [ ] Install a .paket file with `paket install <filename>` (#9)
+- [ ] Upgrade, Downgrade an existing paket
+- [ ] Remove a paket
+### Version: 0.2
+- [ ] `paket-server` serves as a repository file server
+- [ ] QUIC + HTTP/3 implementation for both client(`paket-cli`) and server(`paket-server`)
+- [ ] Download and install .paket files from repository
+- [ ] Search pakets with `paket search [keywords]`
+### Version 0.3:
+- [ ] Development of paket-maker-gui, making the creating .paket process easy for package maintainers.
+
 ## How does it work?
-Basic principle of how paket works is:
+Basically:
 ![Alt text](/paket-architecture.webp "Paket Architecture")
 
 ## Package Types
