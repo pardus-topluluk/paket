@@ -1,4 +1,5 @@
 pub mod build;
+pub mod dependency;
 pub mod install;
 pub mod sha256;
 pub mod toml_structs;
