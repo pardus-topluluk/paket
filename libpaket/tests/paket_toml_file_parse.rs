@@ -2,6 +2,7 @@
 mod tests {
     use pretty_assertions::assert_eq;
     use std::path::Path;
+    use toml::map::Map;
 
     use libpaket::toml_structs::paket_toml::*;
 
@@ -28,7 +29,7 @@ mod tests {
             dependencies: None,
             application: Some(ApplicationInformation {
                 executable: String::from("hello-world"),
-                icon: String::from("hello-world.svg"),
+                icon: Some(String::from("hello-world.svg")),
                 assets_folder: None,
                 desktop_file: None,
             }),
@@ -44,6 +45,25 @@ mod tests {
             format!("./example_pakets/application_full.toml").as_str(),
         ))
         .unwrap();
+
+        // python3 = "3.11"
+        // python3-gi = "3.42"
+        let mut application_dependency_list = Map::new();
+        application_dependency_list.insert(
+            "python3".to_string(),
+            toml::Value::String("3.11".to_string()),
+        );
+        application_dependency_list.insert(
+            "python3-gi".to_string(),
+            toml::Value::String("3.42".to_string()),
+        );
+
+        // libgtk4 = "4.8"
+        let mut library_dependency_list = Map::new();
+        library_dependency_list.insert(
+            "libgtk4".to_string(),
+            toml::Value::String("4.8".to_string()),
+        );
 
         let expected_config = Config {
             package: Package {
@@ -64,17 +84,13 @@ mod tests {
                 categories: Some(vec![String::from("Game"), String::from("Education")]),
             },
             dependencies: Some(Dependencies {
-                application: Some(vec![String::from("python3.11"), String::from("python3-gi")]),
-                library: Some(vec![
-                    String::from("libgtk-3-0"),
-                    String::from("libglib2.0.0"),
-                    String::from("libpango-1.0-0"),
-                ]),
+                application: Some(application_dependency_list),
+                library: Some(library_dependency_list),
                 development: None,
             }),
             application: Some(ApplicationInformation {
                 executable: String::from("myapp"),
-                icon: String::from("myapp.svg"),
+                icon: Some(String::from("myapp.svg")),
                 assets_folder: None,
                 desktop_file: None,
             }),

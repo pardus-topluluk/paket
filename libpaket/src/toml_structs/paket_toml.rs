@@ -171,19 +171,21 @@ pub struct Dependencies {
     ///
     /// Example usage in **Paket.toml**:
     /// ```toml
-    /// [dependencies]
-    /// application = ["python3.11", "python3-gi"]
+    /// [dependencies.application]
+    /// python = "3.11"
     /// ```
-    pub application: Option<Vec<String>>,
+    pub application: Option<toml::Table>,
 
     /// Library dependencies of the package
     ///
     /// Example usage in **Paket.toml**:
     /// ```toml
-    /// [dependencies]
-    /// library = ["libgtk-3-0", "libglib2.0.0", "libpango-1.0-0"]
+    /// [dependencies.library]
+    /// libgtk = "3"
+    /// libglib = "2"
+    /// libpango = "1"
     /// ```
-    pub library: Option<Vec<String>>,
+    pub library: Option<toml::Table>,
 
     /// Development dependencies of the package.
     ///
@@ -193,10 +195,10 @@ pub struct Dependencies {
     ///
     /// Example usage in **Paket.toml**:
     /// ```toml
-    /// [dependencies]
-    /// development = ["libgtk-3-0-dev"]
+    /// [dependencies.development]
+    /// libgtk = "3"
     /// ```   
-    pub development: Option<Vec<String>>,
+    pub development: Option<toml::Table>,
 }
 
 /// `[application]` table in Paket.toml file
@@ -205,6 +207,8 @@ pub struct Dependencies {
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ApplicationInformation {
     /// Binary executable file of the application
+    ///
+    /// This file will be copied to: /usr/bin/<executable>
     ///
     /// Example usage in **Paket.toml**:
     /// ```toml
@@ -215,12 +219,14 @@ pub struct ApplicationInformation {
 
     /// .svg Icon of the application
     ///
+    /// This file will be copied to: /usr/share/icons/hicolor/scalable/apps/<icon>
+    ///
     /// Example usage in **Paket.toml**:
     /// ```toml
     /// [application]
     /// icon = "myapp.svg"
     /// ```
-    pub icon: String,
+    pub icon: Option<String>,
 
     /// Contains read-only assets required to run for the application. (images, videos, UI files, 3D models, json stored datas etc.)
     ///
@@ -271,7 +277,7 @@ pub struct ScriptInformation {
     /// [script]
     /// icon = "myapp.svg"
     /// ```
-    pub icon: String,
+    pub icon: Option<String>,
 
     /// Contains main script and other scripts.
     ///
@@ -282,7 +288,7 @@ pub struct ScriptInformation {
     /// [script]
     /// source_folder = "src"
     /// ```
-    pub sources_folder: Option<String>,
+    pub sources_folder: String,
 
     /// Contains read-only assets required to run for the script. (images, videos, UI files, 3D models, json stored datas etc.)
     ///

@@ -16,6 +16,10 @@ description = """
 Multiline description of what this package is about.
 """
 
+[dependencies.application]
+python3 = "3.11"
+python3-gi = "3.42"
+
 [script]
 executable = "main.py" # src/main.py
 icon = "helloworld.svg"
