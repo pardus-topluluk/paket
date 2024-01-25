@@ -3,8 +3,8 @@ use std::fs::{self, DirEntry, File};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use crate::toml_structs::paket_toml::PackageType;
 use crate::toml_structs::paket_toml::{self, Config};
+use crate::toml_structs::paket_toml::{read_config_from_toml, PackageType};
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use once_cell::sync::Lazy;
@@ -15,14 +15,24 @@ use crate::{PaketError, Result};
 
 use semver::Version;
 
-pub enum PaketInstalledStatus {
-    No,
-    LowerVersion,
-    HigherVersion,
-    SameVersion,
+#[derive(Debug)]
+pub enum PaketExistance {
+    NotExists,
+    LowerVersionInstalled,
+    HigherVersionInstalled,
+    SameVersionInstalled,
+}
+pub enum DependencyStatus {
+    Valid,
+    NotValid(String),
 }
 
-// === Paths ===
+pub struct InstallInformation {
+    paket_existance_status: PaketExistance,
+    dependency_status: DependencyStatus,
+}
+
+// === Static Paths ===
 static BASE_PAKET_FOLDER: Lazy<PathBuf> = Lazy::new(|| Path::new("/var/lib/paket").to_path_buf());
 static INSTALLED_PAKETS_FOLDER: Lazy<PathBuf> = Lazy::new(|| BASE_PAKET_FOLDER.join("installed"));
 
@@ -71,61 +81,81 @@ fn read_paket_toml_inside_tar(entries: Entries<'_, File>) -> Result<Config> {
     toml::from_str(&toml_content).map_err(|e| PaketError::TomlParseError(e.message().to_string()))
 }
 
-fn check_installed_version(config: &Config) -> PaketInstalledStatus {
+fn check_installed_version(config: &Config) -> Result<PaketExistance> {
     let installed_folder = match config.package.package_type {
-        PackageType::Application => INSTALLED_APPLICATIONS_FOLDER,
-        PackageType::Script => INSTALLED_SCRIPT_FOLDER,
+        PackageType::Application => &INSTALLED_APPLICATIONS_FOLDER,
+        PackageType::Script => &INSTALLED_SCRIPT_FOLDER,
 
-        PackageType::Library => INSTALLED_LIBRARY_FOLDER,
-        PackageType::DevelopmentLibrary => INSTALLED_DEVELOPMENT_LIBRARY_FOLDER,
+        PackageType::Library => &INSTALLED_LIBRARY_FOLDER,
+        PackageType::DevelopmentLibrary => &INSTALLED_DEVELOPMENT_LIBRARY_FOLDER,
 
-        PackageType::ApplicationSourceCode => INSTALLED_APPLICATION_SOURCE_CODES_FOLDER,
-        PackageType::LibrarySourceCode => INSTALLED_LIBRARY_SOURCE_CODES_FOLDER,
+        PackageType::ApplicationSourceCode => &INSTALLED_APPLICATION_SOURCE_CODES_FOLDER,
+        PackageType::LibrarySourceCode => &INSTALLED_LIBRARY_SOURCE_CODES_FOLDER,
 
-        PackageType::Configuration => INSTALLED_CONFIGURATIONS_FOLDER,
+        PackageType::Configuration => &INSTALLED_CONFIGURATIONS_FOLDER,
     };
 
     let installed_filepath = installed_folder.join(config.get_paket_archive_name());
     if installed_filepath.exists() {
-        // Paket is already installed!
-        return PaketInstalledStatus::SameVersion;
+        // Same Paket is already installed!
+        return Ok(PaketExistance::SameVersionInstalled);
     }
 
     // Check version difference with installed paket:
     let paket_basename = format!("{}_", &config.package.name);
-    let mut pakets_with_same_basename = fs::read_dir(INSTALLED_CONFIGURATIONS_FOLDER.as_path())
-        .unwrap()
-        .filter_map(|f| match f {
-            Ok(e) => {
-                let filename = e.file_name().to_string_lossy().to_string();
-                if filename.contains(&paket_basename) {
-                    Some(filename)
-                } else {
-                    None
-                }
-            }
-            Err(e) => None,
-        });
+    let mut paket_with_same_basename: Option<PathBuf> = None;
+    for dir_entry in fs::read_dir(installed_folder.as_path())? {
+        let e = dir_entry?;
 
-    if let Some(p) = pakets_with_same_basename.next() {
+        let filename = e.file_name().to_string_lossy().to_string();
+        if let Some(0) = filename.find(&paket_basename) {
+            paket_with_same_basename = Some(e.path());
+            break;
+        }
+    }
+
+    if let Some(paket_path) = paket_with_same_basename {
         // There is a package with the same name.
-        let version = p.split('_').last().unwrap(); // abc_1.0.0.paket -> 1.0.0.paket
-        let version = &version[..version.len() - 6]; // 1.0.0.paket -> 1.0.0
+        let installed_paket = read_config_from_toml(&paket_path)?;
 
-        let currently_installed_version = Version::parse(version).unwrap();
+        let currently_installed_version = Version::parse(&installed_paket.package.version).unwrap();
         let new_version = Version::parse(&config.package.version).unwrap();
 
-        match currently_installed_version.cmp(&new_version) {
-            Ordering::Less => PaketInstalledStatus::LowerVersion,
-            Ordering::Equal => PaketInstalledStatus::SameVersion,
-            Ordering::Greater => PaketInstalledStatus::HigherVersion,
-        }
+        let installed_version_diff = match currently_installed_version.cmp(&new_version) {
+            Ordering::Less => PaketExistance::LowerVersionInstalled,
+            Ordering::Equal => PaketExistance::SameVersionInstalled,
+            Ordering::Greater => PaketExistance::HigherVersionInstalled,
+        };
+
+        Ok(installed_version_diff)
     } else {
-        PaketInstalledStatus::No
+        Ok(PaketExistance::NotExists)
     }
 }
 
-pub fn install_paket(paket_path: &Path) -> Result<()> {
+fn check_application_dependencies(dependency_list: &toml::Table) -> Result<DependencyStatus> {
+    for (key, value) in dependency_list {
+        println!("{key} => {value}");
+    }
+
+    Ok(DependencyStatus::Valid)
+}
+
+fn check_all_dependencies(config: &Config) -> Result<DependencyStatus> {
+    let dependencies = match &config.dependencies {
+        Some(d) => d,
+        None => return Ok(DependencyStatus::Valid), // No dependencies, directly valid
+    };
+
+    // Check application dependencies
+    if dependencies.application.is_some() {
+        check_application_dependencies(dependencies.application.as_ref().unwrap())?;
+    }
+
+    Ok(DependencyStatus::Valid)
+}
+
+pub fn install_paket(paket_path: &PathBuf) -> Result<PaketExistance> {
     // Read base .tar archive:
     let file = File::open(paket_path)?;
     let mut ar = Archive::new(file);
@@ -134,14 +164,30 @@ pub fn install_paket(paket_path: &Path) -> Result<()> {
     // Get the valid Paket.toml
     let config: Config = read_paket_toml_inside_tar(entries)?;
 
-    let installed_status = check_installed_version(&config);
+    let installed_status = check_installed_version(&config)?;
 
     match installed_status {
-        PaketInstalledStatus::No | PaketInstalledStatus::LowerVersion => {
-            // Install
-        }
-        PaketInstalledStatus::HigherVersion | PaketInstalledStatus::SameVersion => {
+        PaketExistance::HigherVersionInstalled | PaketExistance::SameVersionInstalled => {
             // Do nothing.
+            return Ok(installed_status);
+        }
+        _ => (),
+    }
+
+    check_all_dependencies(&config)?;
+
+    Ok(PaketExistance::NotExists)
+}
+
+/// Paket installation steps:
+/// 1. Read `Paket.toml` inside the archive and check if it's a valid Config.
+/// 2. Check installed status of the package. If paket doesn't exist or have lower version, proceed.
+/// 3. Check if dependency tree of the paket is valid.
+pub fn install_paket_files(paket_path_list: &[PathBuf]) -> Result<()> {
+    for paket_path in paket_path_list {
+        match install_paket(paket_path) {
+            Ok(s) => println!("{:?} => {s:?}", paket_path.file_name()),
+            Err(e) => return Err(e),
         }
     }
 
