@@ -8,6 +8,7 @@ pub fn cli() -> Command {
         .arg_required_else_help(true)
         .subcommand(
             Command::new("build")
+                .alias("derle") // Turkish alias
                 .about("Create a .paket package from Paket.toml.\n- Example usage: `paket build ./myapp_folder`")
                 .arg(
                     Arg::new("toml_path")
@@ -17,6 +18,7 @@ pub fn cli() -> Command {
         )
         .subcommand(
             Command::new("install")
+                .alias("kur") // Turkish alias
                 .about("Install package(s) by package name or .paket file.\n- Example usage: `paket install vlc`")
                 .arg(
                     Arg::new("packages")
@@ -29,6 +31,7 @@ pub fn cli() -> Command {
         )
         .subcommand(
             Command::new("remove")
+                .alias("sil") // Turkish alias
                 .about("Remove package(s) by package name or .paket file.\n- Example usage: `paket remove vlc`")
                 .alias("uninstall")
                 .arg(
@@ -42,6 +45,7 @@ pub fn cli() -> Command {
         )
         .subcommand(
             Command::new("search")
+                .alias("ara") // Turkish alias
                 .about("Search a package\n- Example usage: `paket search vlc`")
                 .arg(
                     Arg::new("keywords")
